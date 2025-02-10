@@ -27,7 +27,7 @@ async def upload_csv(file: UploadFile = File(...)):
     return {"message": "File uploaded successfully", "file_path": file_path}
 
 # 📌 2. Analyze CSV (POST Request)
-@app.get("/analyze/")
+@app.post("/analyze/")
 async def analyze_csv(request: AnalysisRequest):
     file_path = os.path.join(UPLOAD_FOLDER, request.file_name)
 
