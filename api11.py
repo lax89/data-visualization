@@ -19,7 +19,7 @@ class AnalysisRequest(BaseModel):
     chart_type: str  # "histogram", "bar", or "heatmap"
 
 # 📌 1. Upload CSV File (POST Request)
-@app.get("/upload/")
+@app.post("/upload/")
 async def upload_csv(file: UploadFile = File(...)):
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
     with open(file_path, "wb") as f:
@@ -27,7 +27,7 @@ async def upload_csv(file: UploadFile = File(...)):
     return {"message": "File uploaded successfully", "file_path": file_path}
 
 # 📌 2. Analyze CSV (POST Request)
-@app.post("/analyze/")
+@app.get("/analyze/")
 async def analyze_csv(request: AnalysisRequest):
     file_path = os.path.join(UPLOAD_FOLDER, request.file_name)
 
