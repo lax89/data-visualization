@@ -16,7 +16,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 class AnalysisRequest(BaseModel):
     file_name: str
     column: str
-    chart_type: str  # "histogram", "bar", or "heatmap"
+    chart_type: str  # "histogram", "bar", "heatmap", or "line"
 
 # 📌 1. Upload CSV File (POST Request)
 @app.post("/upload/")
@@ -72,29 +72,27 @@ async def analyze_csv(request: AnalysisRequest):
 
     elif request.chart_type == "heatmap":
         # Heatmap does not need a specific column; it shows correlation of all numeric columns
-        plt.figure(figsize=(12, 8))
         numeric_df = df.select_dtypes(include=['number'])
         if numeric_df.empty:
             raise HTTPException(status_code=400, detail="No numeric columns available for heatmap.")
-        sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm", linewidths=0.5)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm", linewidths=0.5, ax=ax)
         plt.title("Heatmap of Numerical Features")
-     elif request.chart_type == "line":
+
+    elif request.chart_type == "line":
         if request.column not in df.columns:
             available_cols = ", ".join(df.columns)
             raise HTTPException(
                 status_code=400,
                 detail=f"Column '{request.column}' not found. Available columns: {available_cols}",
             )
-        value_counts = df[request.column].value_counts()
-        sns.lineplot(x=value_counts.index, y=value_counts.values, ax=ax, palette="Blues_d")
-        plt.title(f"Bar Chart of {request.column}")
-        plt.xlabel(request.column)
-        plt.ylabel("Count")
-        plt.xticks(rotation=45)
-
+        sns.lineplot(x=df.index, y=df[request.column], ax=ax, color="blue")
+        plt.title(f"Line Chart of {request.column}")
+        plt.xlabel("Index")
+        plt.ylabel(request.column)
 
     else:
-        raise HTTPException(status_code=400, detail="Invalid chart_type. Use 'histogram', 'bar', or 'heatmap'.")
+        raise HTTPException(status_code=400, detail="Invalid chart_type. Use 'histogram', 'bar', 'heatmap', or 'line'.")
 
     # 🎨 Save and return the image
     buf = io.BytesIO()
