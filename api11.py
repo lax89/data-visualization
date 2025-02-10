@@ -78,6 +78,20 @@ async def analyze_csv(request: AnalysisRequest):
             raise HTTPException(status_code=400, detail="No numeric columns available for heatmap.")
         sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm", linewidths=0.5)
         plt.title("Heatmap of Numerical Features")
+     elif request.chart_type == "line":
+        if request.column not in df.columns:
+            available_cols = ", ".join(df.columns)
+            raise HTTPException(
+                status_code=400,
+                detail=f"Column '{request.column}' not found. Available columns: {available_cols}",
+            )
+        value_counts = df[request.column].value_counts()
+        sns.lineplot(x=value_counts.index, y=value_counts.values, ax=ax, palette="Blues_d")
+        plt.title(f"Bar Chart of {request.column}")
+        plt.xlabel(request.column)
+        plt.ylabel("Count")
+        plt.xticks(rotation=45)
+
 
     else:
         raise HTTPException(status_code=400, detail="Invalid chart_type. Use 'histogram', 'bar', or 'heatmap'.")
